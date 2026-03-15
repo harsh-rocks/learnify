@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ELearningPlatform.Controllers
 {
-    [Authorize(Roles = "Student,Instructor")]
+    [Authorize(Roles = "Admin,Student,Instructor")]
     public class StudentController : Controller
     {
         private readonly ApplicationDbContext _context;

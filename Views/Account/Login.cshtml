@@ -112,6 +112,7 @@
             </div>
 
             <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                <input type="hidden" name="FirebaseApproved" id="firebase-approved" value="false" />
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" id="server-errors"></div>
                 <div id="firebase-error" class="alert alert-danger py-2 small d-none"></div>
 
@@ -206,6 +207,7 @@
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setStatus('success', 'fa-circle-check', 'Firebase verified! Signing in...');
+            document.getElementById('firebase-approved').value = 'true';
             // Step 2: Submit to ASP.NET Identity (which manages the session cookie)
             setTimeout(() => form.submit(), 500);
         } catch (err) {

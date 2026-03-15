@@ -81,23 +81,47 @@ namespace ELearningPlatform.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, bool firebaseApproved = false, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
                 var email = model.Email.Trim();
+
+                // If Firebase has already verified the user on the client, ensure they exist locally
+                if (firebaseApproved)
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        // Create a local identity for the external Firebase user
+                        user = new ApplicationUser
+                        {
+                            UserName = email,
+                            Email = email,
+                            FirstName = "Learner",
+                            LastName = "User",
+                            EmailConfirmed = true
+                        };
+                        var createResult = await _userManager.CreateAsync(user, model.Password);
+                        if (createResult.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, "Student");
+                        }
+                    }
+
+                    if (user != null)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
+                        return RedirectToLocal(returnUrl);
+                    }
+                }
+
+                // Standard login check (covers local-only seeded accounts and synced Firebase users)
                 var result = await _signInManager.PasswordSignInAsync(email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    {
-                        return Redirect(returnUrl);
-                    }
-                    else
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
+                    return RedirectToLocal(returnUrl);
                 }
                 else
                 {
@@ -106,6 +130,15 @@ namespace ELearningPlatform.Controllers
                 }
             }
             return View(model);
+        }
+
+        private IActionResult RedirectToLocal(string returnUrl)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
