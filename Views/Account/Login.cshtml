@@ -187,7 +187,7 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const email    = document.getElementById('login-email').value;
+        const email    = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
         // Show loading state
@@ -195,7 +195,15 @@
         loginBtn.disabled = true;
         fbError.classList.add('d-none');
 
-        // Step 1: Firebase Authentication
+        // CHECK: If it's a seeded account, skip Firebase and submit directly to server.
+        const seededEmails = ['admin@elearning.com', 'instructor@elearning.com'];
+        if (seededEmails.includes(email.toLowerCase())) {
+            setStatus('success', 'fa-circle-check', 'Local account detected. Signing in...');
+            setTimeout(() => form.submit(), 500);
+            return;
+        }
+
+        // Step 1: Firebase Authentication (for all other users)
         setStatus('verifying', 'fa-circle-notch fa-spin', 'Verifying with Firebase...');
 
         try {
