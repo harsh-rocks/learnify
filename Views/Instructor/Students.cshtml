@@ -1,0 +1,75 @@
+@model IEnumerable<ELearningPlatform.Models.Enrollment>
+@{
+    ViewData["Title"] = "My Students";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">My Students</h1>
+            <p class="text-muted mb-0">View all students enrolled in your courses</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3">Student Name</th>
+                        <th class="border-0 py-3">Email</th>
+                        <th class="border-0 py-3">Course Enrolled</th>
+                        <th class="border-0 py-3">Enrollment Date</th>
+                        <th class="border-0 py-3 text-center">Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrollment in Model)
+                    {
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary text-white me-3" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                        @(enrollment.Student.FirstName?.FirstOrDefault() ?? 'U')@(enrollment.Student.LastName?.FirstOrDefault() ?? ' ')
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">@enrollment.Student.FirstName @enrollment.Student.LastName</h6>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 text-muted">@enrollment.Student.Email</td>
+                            <td class="py-3 fw-semibold">@enrollment.Course.Title</td>
+                            <td class="py-3 text-muted">@enrollment.EnrollmentDate.ToString("MMM dd, yyyy")</td>
+                            <td class="py-3 align-middle text-center">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 8px; max-width: 100px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: @enrollment.ProgressPercentage%;" 
+                                             aria-valuenow="@enrollment.ProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="small fw-bold">@enrollment.ProgressPercentage%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-users-slash fa-3x" style="opacity: 0.5;"></i>
+                                </div>
+                                <h5>No Students Enrolled Yet</h5>
+                                <p>Once students enroll in your courses, they will appear here.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

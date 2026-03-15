@@ -1,0 +1,129 @@
+@model ELearningPlatform.Models.Quiz?
+@using ELearningPlatform.Models
+@{
+    ViewData["Title"] = "Manage Quiz";
+    var lesson = ViewBag.Lesson as Lesson;
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">Quiz Builder</h1>
+            <p class="text-muted mb-0">Lesson: <span class="text-primary fw-semibold">@lesson?.Title</span></p>
+        </div>
+        <a asp-action="ManageLessons" asp-route-courseId="@lesson?.CourseId" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Curriculum
+        </a>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <!-- No quiz yet — prompt to create one -->
+    <div class="card border-0 shadow-sm text-center py-5">
+        <div class="card-body">
+            <i class="fa-solid fa-circle-question fa-4x text-muted mb-3 d-block opacity-50"></i>
+            <h4 class="fw-bold mb-2">No Quiz Attached Yet</h4>
+            <p class="text-muted mb-4">Create a quiz for this lesson and add multiple-choice questions.</p>
+            <a asp-action="CreateQuiz" asp-route-lessonId="@lesson?.Id" class="btn-primary-custom">
+                <i class="fa-solid fa-plus me-2"></i>Create Quiz
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Quiz exists — show details + questions -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <div>
+                        <h5 class="fw-bold mb-0">@Model.Title</h5>
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <p class="text-muted small mb-0 mt-1">@Model.Description</p>
+                        }
+                    </div>
+                    <form asp-action="DeleteQuiz" asp-route-id="@Model.Id" asp-route-lessonId="@lesson?.Id" method="post"
+                          onsubmit="return confirm('Delete this entire quiz and all its questions?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fa-solid fa-trash me-1"></i>Delete Quiz
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (!Model.Questions.Any())
+                        {
+                            <li class="list-group-item text-center py-5 text-muted bg-light">
+                                <i class="fa-solid fa-layer-group fa-2x d-block mb-2 text-secondary"></i>
+                                No questions yet. Add your first question →
+                            </li>
+                        }
+                        @{int qNum = 1;}
+                        @foreach (var question in Model.Questions)
+                        {
+                            <li class="list-group-item p-4">
+                                <div class="d-flex justify-content-between">
+                                    <div class="fw-bold mb-2">Q@(qNum). @question.Text <span class="badge bg-light text-muted fw-normal border ms-2">@question.Points pt</span></div>
+                                    <form asp-action="DeleteQuestion" asp-route-id="@question.Id" asp-route-lessonId="@lesson?.Id" method="post"
+                                          onsubmit="return confirm('Delete this question?');">
+                                        <button type="submit" class="btn btn-sm text-danger border-0 bg-transparent" title="Delete Question">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <ul class="list-unstyled mb-0 ps-2">
+                                    @foreach (var option in question.Options)
+                                    {
+                                        <li class="py-1 @(option.IsCorrect ? "text-success fw-semibold" : "text-muted")">
+                                            @if (option.IsCorrect)
+                                            {
+                                                <i class="fa-solid fa-circle-check me-2"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-regular fa-circle me-2 opacity-25"></i>
+                                            }
+                                            @option.Text
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                            qNum++;
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 2rem;">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-3">
+                        <i class="fa-solid fa-circle-plus me-2 text-primary"></i>Add a Question
+                    </h6>
+                    <p class="text-muted small mb-4">Create a multiple-choice question with up to 4 answer options.</p>
+                    <a asp-action="AddQuestion" asp-route-quizId="@Model.Id" class="btn-primary-custom w-100">
+                        <i class="fa-solid fa-plus me-2"></i>Add Question
+                    </a>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-around text-center">
+                        <div>
+                            <div class="fs-4 fw-bold text-primary">@Model.Questions.Count</div>
+                            <div class="text-muted small">Questions</div>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-primary">@Model.Questions.Sum(q => q.Points)</div>
+                            <div class="text-muted small">Total Points</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

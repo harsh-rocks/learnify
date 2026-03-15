@@ -1,0 +1,61 @@
+@model ELearningPlatform.Models.Enrollment
+@{
+    ViewData["Title"] = Model.Course.Title;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <div>
+        <span class="text-uppercase text-muted fw-bold small">Course</span>
+        <h1 class="fw-bold mb-0 text-primary">@Model.Course.Title</h1>
+    </div>
+    <div class="text-end">
+        <div class="small text-muted mb-1">Your Progress</div>
+        <div class="progress" style="width: 150px; height: 12px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: @Math.Round(Model.ProgressPercentage)%;" aria-valuenow="@Model.ProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="small fw-bold mt-1">@Math.Round(Model.ProgressPercentage)% Completed</div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm order-md-2">
+            @if(!string.IsNullOrEmpty(Model.Course.ImageUrl))
+            {
+                <img src="@Model.Course.ImageUrl" class="card-img-top" alt="...">
+            }
+            <div class="card-body bg-light">
+                <h6 class="fw-bold text-uppercase text-muted mb-3">About this course</h6>
+                <p>@Model.Course.Description</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 order-md-1">
+        <h3 class="mb-3">Course Content</h3>
+        <div class="list-group shadow-sm mb-5">
+            @foreach (var lesson in Model.Course.Lessons)
+            {
+                <a asp-action="PlayLesson" asp-route-lessonId="@lesson.Id" class="list-group-item list-group-item-action p-4">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1 text-primary fw-bold">@lesson.OrderIndex. @lesson.Title</h5>
+                            <p class="mb-1 text-muted">@lesson.Description</p>
+                        </div>
+                        <div class="text-end ms-3">
+                            @if(!string.IsNullOrEmpty(lesson.VideoUrl)){ <span class="badge bg-info mb-1"><i class="fa-solid fa-play"></i></span><br/> }
+                            @if(!string.IsNullOrEmpty(lesson.DocumentUrl)){ <span class="badge bg-warning text-dark mb-1"><i class="fa-solid fa-file-pdf"></i></span><br/> }
+                            @if(lesson.Quiz != null){ <span class="badge bg-success"><i class="fa-solid fa-check-square"></i> Quiz</span> }
+                        </div>
+                    </div>
+                </a>
+            }
+            @if(!Model.Course.Lessons.Any())
+            {
+                <div class="list-group-item py-4 text-center text-muted">
+                    Instructor has not prepared any lessons yet.
+                </div>
+            }
+        </div>
+    </div>
+</div>

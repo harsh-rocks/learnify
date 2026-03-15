@@ -1,0 +1,130 @@
+@model ELearningPlatform.Models.Lesson
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["FullWidth"] = true;
+    // Convert YouTube watch URL to embed URL
+    string GetYouTubeEmbedUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return null;
+        var uri = new Uri(url);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var videoId = query["v"];
+        if (!string.IsNullOrEmpty(videoId))
+        {
+            return $"https://www.youtube-nocookie.com/embed/{videoId}?rel=0&modestbranding=1";
+        }
+        // Handle youtu.be short links
+        if (uri.Host == "youtu.be")
+        {
+            return $"https://www.youtube-nocookie.com/embed{uri.AbsolutePath}?rel=0&modestbranding=1";
+        }
+        return url; // Return as-is if unknown format
+    }
+    var embedUrl = GetYouTubeEmbedUrl(Model.VideoUrl);
+}
+
+<div class="container-fluid px-0">
+    <!-- Lesson Video Player -->
+    <div class="bg-dark lesson-player-wrapper">
+        @if (!string.IsNullOrEmpty(Model.VideoUrl) && Model.VideoUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="mx-auto" style="max-width: 1100px;">
+                <video controls width="100%" class="shadow-sm">
+                    <source src="@Model.VideoUrl" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(embedUrl))
+        {
+            <div class="ratio ratio-16x9 mx-auto" style="max-width: 1100px;">
+                <iframe src="@embedUrl"
+                        title="@Model.Title"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy">
+                </iframe>
+            </div>
+        }
+        else
+        {
+            <div class="p-5 text-center" style="min-height:300px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                <i class="fa-solid fa-video-slash fa-4x text-secondary mb-4"></i>
+                <h4 class="text-white-50">No video lecture available for this lesson</h4>
+            </div>
+        }
+    </div>
+
+    <!-- Lesson Content Below Player -->
+    <div class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="MyCourse" asp-route-id="@Model.CourseId">@Model.Course?.Title</a></li>
+                <li class="breadcrumb-item active">Lesson @Model.OrderIndex</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+            <div>
+                <p class="text-muted small text-uppercase fw-bold mb-1">Lesson @Model.OrderIndex</p>
+                <h1 class="fw-bold fs-3 mb-0">@Model.Title</h1>
+            </div>
+            <!-- Prev / Next Navigation -->
+            <div class="btn-group shadow-sm" role="group">
+                @if (ViewBag.PrevLessonId != 0)
+                {
+                    <a asp-action="PlayLesson" asp-route-lessonId="@ViewBag.PrevLessonId" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-chevron-left me-1"></i> Previous
+                    </a>
+                }
+                @if (ViewBag.NextLessonId != 0)
+                {
+                    <a asp-action="PlayLesson" asp-route-lessonId="@ViewBag.NextLessonId" class="btn btn-primary">
+                        Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <p class="fs-5 text-muted mb-4">@Model.Description</p>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-paperclip me-2 text-primary"></i>Resources</h5>
+                        @if (!string.IsNullOrEmpty(Model.DocumentUrl))
+                        {
+                            <a href="@Model.DocumentUrl" target="_blank" class="btn btn-warning shadow-sm">
+                                <i class="fa-solid fa-file-pdf me-2"></i> Download Lesson Notes
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0">No attachments for this lesson.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-clipboard-question me-2 text-success"></i>Knowledge Check</h5>
+                        @if (Model.Quiz != null && Model.Quiz.Questions.Any())
+                        {
+                            <a asp-controller="Student" asp-action="TakeQuiz" asp-route-id="@Model.Quiz.Id" class="btn btn-success shadow-sm">
+                                <i class="fa-solid fa-pen me-2"></i> Take Lesson Quiz
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0">No quiz for this lesson.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

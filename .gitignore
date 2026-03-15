@@ -1,0 +1,27 @@
+## [Visual Studio]
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+## [Build Results]
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+
+## [ASP.NET Core]
+appsettings.Development.json
+wwwroot/lib/
+
+## [Database]
+*.db
+*.db-shm
+*.db-wal
+
+## [Logs]
+*.log
+*.txt

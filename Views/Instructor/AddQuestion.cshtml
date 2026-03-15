@@ -1,0 +1,80 @@
+@model ELearningPlatform.Models.ViewModels.QuestionCreateViewModel
+@{
+    ViewData["Title"] = "Add Question";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">Add Question</h1>
+            <p class="text-muted mb-0">Quiz: <span class="text-primary fw-semibold">@ViewBag.QuizTitle</span></p>
+        </div>
+        <a asp-action="ManageQuiz" asp-route-lessonId="@ViewBag.LessonId" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Quiz
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width: 720px;">
+    <div class="card-body p-4">
+        <form asp-action="AddQuestion">
+            <input type="hidden" asp-for="QuizId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="mb-3">
+                <label asp-for="Text" class="form-label fw-semibold"></label>
+                <textarea asp-for="Text" class="form-control" rows="3"
+                          placeholder="e.g. What does HTML stand for?"></textarea>
+                <span asp-validation-for="Text" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Points" class="form-label fw-semibold"></label>
+                <input asp-for="Points" type="number" min="1" max="100" class="form-control" style="max-width:100px;" />
+                <span asp-validation-for="Points" class="text-danger small"></span>
+            </div>
+
+            <h6 class="text-muted text-uppercase fw-bold small mb-3">
+                <i class="fa-solid fa-list-check me-2 text-primary"></i>Answer Options
+            </h6>
+
+            <p class="text-muted small mb-3">Enter at least 2 options. Mark the correct answer below.</p>
+
+            @foreach (var opt in new[] {("A", "OptionA", "Option A (required)"), ("B", "OptionB", "Option B (required)"), ("C", "OptionC", "Option C (optional)"), ("D", "OptionD", "Option D (optional)")})
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">@opt.Item3</label>
+                    <div class="input-group">
+                        <span class="input-group-text fw-bold @(opt.Item1 is "A" or "B" ? "bg-white" : "bg-light text-muted")">@opt.Item1</span>
+                        <input name="@opt.Item2" class="form-control"
+                               placeholder="@opt.Item3"
+                               @(opt.Item1 is "C" or "D" ? "" : "required") />
+                    </div>
+                </div>
+            }
+
+            <div class="mb-4 mt-3">
+                <label asp-for="CorrectOption" class="form-label fw-semibold">Correct Answer</label>
+                <select asp-for="CorrectOption" class="form-select" style="max-width: 200px;">
+                    <option value="A">A — Option A</option>
+                    <option value="B">B — Option B</option>
+                    <option value="C">C — Option C</option>
+                    <option value="D">D — Option D</option>
+                </select>
+                <span asp-validation-for="CorrectOption" class="text-danger small"></span>
+                <div class="form-text">Students will see a ✓ next to this option after submitting.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3">
+                <a asp-action="ManageQuiz" asp-route-lessonId="@ViewBag.LessonId" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn-primary-custom px-5">
+                    <i class="fa-solid fa-save me-2"></i>Save Question
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

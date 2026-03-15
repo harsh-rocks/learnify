@@ -1,0 +1,113 @@
+@model ELearningPlatform.Models.ViewModels.InstructorProfileViewModel
+@{
+    ViewData["Title"] = "Instructor Profile";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">My Profile</h1>
+            <p class="text-muted mb-0">Update your personal details and public biography</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4 p-md-5">
+        <form asp-action="Profile" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="row">
+                <!-- Left: Avatar Upload -->
+                <div class="col-md-4 col-lg-3 text-center mb-4 mb-md-0">
+                    <div class="mb-3">
+                        @if (!string.IsNullOrEmpty(Model.ExistingProfilePictureUrl))
+                        {
+                            <img src="@Model.ExistingProfilePictureUrl" alt="Profile Picture" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;" id="avatar-preview" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle img-thumbnail bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px; color: #a435f0;" id="avatar-preview-placeholder">
+                                <i class="fa-solid fa-user fa-4x opacity-50"></i>
+                            </div>
+                            <img src="#" alt="Profile Picture" class="rounded-circle img-thumbnail d-none mx-auto" style="width: 150px; height: 150px; object-fit: cover;" id="avatar-preview" />
+                        }
+                    </div>
+                    
+                    <div>
+                        <input asp-for="ProfilePicture" type="file" class="d-none" id="avatar-input" accept="image/*" onchange="previewAvatar(this)" />
+                        <label for="avatar-input" class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                            <i class="fa-solid fa-camera me-1"></i> Change Photo
+                        </label>
+                        <div class="form-text small mt-2">Square image recommended. Max 2MB.</div>
+                        <span asp-validation-for="ProfilePicture" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Right: Profile Form -->
+                <div class="col-md-8 col-lg-9 ps-md-4">
+                    <h5 class="fw-bold mb-4 border-bottom pb-2">Personal Information</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-semibold"></label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-semibold"></label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-4 border-bottom pb-2">Public Biography</h5>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Bio" class="form-label text-muted small">This is displayed on your course pages. Highlight your experience and credentials.</label>
+                        <textarea asp-for="Bio" class="form-control" rows="6" placeholder="I am a senior frontend engineer with 10 years of experience..."></textarea>
+                        <span asp-validation-for="Bio" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <input type="hidden" asp-for="ExistingProfilePictureUrl" />
+                        <button type="submit" class="btn-primary-custom px-5 py-2">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatar-preview');
+                    const placeholder = document.getElementById('avatar-preview-placeholder');
+                    
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    if (placeholder) placeholder.classList.add('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

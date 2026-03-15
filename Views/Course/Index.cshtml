@@ -1,0 +1,130 @@
+@model IEnumerable<ELearningPlatform.Models.Course>
+@{
+    ViewData["Title"] = "Browse Courses";
+    ViewData["FullWidth"] = true;
+}
+
+<!-- Page Header Banner -->
+<div class="course-catalog-header mb-5">
+    <div class="container-fluid py-5" style="background: linear-gradient(135deg, #1C1D1F 0%, #3d1a70 100%);">
+        <div class="container">
+            <h1 class="text-white fw-bold mb-2">Explore all courses</h1>
+            <p class="text-white-50 mb-4 fs-5">Find the perfect course to level up your skills</p>
+            <form asp-action="Index" method="get">
+                <div class="d-flex gap-2 flex-wrap" style="max-width: 620px;">
+                    <input type="text" name="query" class="form-control form-control-lg shadow-sm flex-grow-1"
+                           placeholder="Search for anything..." value="@ViewBag.Query"
+                           style="border: none; border-radius: 6px;" />
+                    <button type="submit" class="btn-primary-custom btn-lg shadow-sm">
+                        <i class="fa-solid fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div class="bg-white border-bottom py-3 shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="text-muted small fw-semibold me-2">Filter by:</span>
+                <a href="@Url.Action("Index", "Course")"
+                   class="category-pill @(ViewBag.CategoryId == null ? "active" : "")">
+                    All Categories
+                </a>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var cat in ViewBag.Categories)
+                    {
+                        <a href="@Url.Action("Index", "Course", new { categoryId = cat.Id, query = ViewBag.Query })"
+                           class="category-pill @(ViewBag.CategoryId == cat.Id ? "active" : "")">
+                            @cat.Name
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Results info -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <p class="text-muted mb-0 fw-semibold">
+            <strong class="text-dark">@Model.Count()</strong> course@(Model.Count() != 1 ? "s" : "") found
+            @if (!string.IsNullOrEmpty(ViewBag.Query))
+            {
+                <span>for "<em>@ViewBag.Query</em>"</span>
+            }
+        </p>
+        @if (!string.IsNullOrEmpty(ViewBag.Query) || ViewBag.CategoryId != null)
+        {
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-times me-1"></i>Clear Filters
+            </a>
+        }
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            @foreach (var course in Model)
+            {
+                <div class="col">
+                    <a asp-action="Details" asp-route-id="@course.Id" class="text-decoration-none course-card-wrapper d-block h-100">
+                        <div class="card course-card h-100">
+                            @if (!string.IsNullOrEmpty(course.ImageUrl))
+                            {
+                                <img src="@course.ImageUrl" class="card-img-top" alt="@course.Title">
+                            }
+                            else
+                            {
+                                <div class="bg-light text-muted d-flex align-items-center justify-content-center" style="height:160px;">
+                                    <i class="fa-solid fa-graduation-cap fa-3x"></i>
+                                </div>
+                            }
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge" style="background: rgba(164,53,240,0.1); color: var(--primary);">@course.Category?.Name</span>
+                                </div>
+                                <h3 class="course-title">@course.Title</h3>
+                                <p class="course-instructor"><i class="fa-solid fa-chalkboard-user me-1"></i>@course.Instructor?.FirstName @course.Instructor?.LastName</p>
+                                <p class="text-muted small mb-3" style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;">
+                                    @course.Description
+                                </p>
+                                <div class="course-rating mt-auto">
+                                    <span class="me-1">4.8</span>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star-half-stroke"></i>
+                                    <span class="text-muted small ms-1 fw-normal">(12,453)</span>
+                                </div>
+                                <div class="course-price fw-bolder mt-2">
+                                    @if (course.Price == 0)
+                                    {
+                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #059669; font-size: 0.95rem; padding: 0.35em 0.75em;">FREE</span>
+                                    }
+                                    else
+                                    {
+                                        <span>$@course.Price</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fa-solid fa-search fa-3x text-muted mb-3 d-block"></i>
+            <h4 class="fw-bold">No courses found</h4>
+            <p class="text-muted">Try different keywords or remove the filters.</p>
+            <a asp-action="Index" class="btn-outline-custom mt-2 d-inline-block">Clear Filters</a>
+        </div>
+    }
+</div>

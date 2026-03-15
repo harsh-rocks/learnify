@@ -1,0 +1,130 @@
+@model ELearningPlatform.Models.Course
+@{
+    ViewData["Title"] = "Manage Lessons";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">Manage Lessons</h1>
+            <p class="text-muted mb-0">Course: <span class="text-primary fw-semibold">@Model.Title</span></p>
+        </div>
+<div class="row g-4">
+    <!-- Left: Curriculum List -->
+    <div class="col-lg-8">
+        @if (!Model.Sections.Any())
+        {
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fa-solid fa-folder-open fa-3x text-muted mb-3 d-block"></i>
+                    <h5 class="fw-bold">No Sections Yet</h5>
+                    <p class="text-muted">Start by creating a section to organize your lessons.</p>
+                </div>
+            </div>
+        }
+
+        @foreach (var courseSection in Model.Sections.OrderBy(s => s.Order))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="fw-bold mb-0">
+                        <span class="text-primary me-2">Section @courseSection.Order:</span> @courseSection.Title
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <a asp-action="AddLesson" asp-route-courseId="@Model.Id" asp-route-sectionId="@courseSection.Id" class="btn btn-sm btn-outline-primary">
+                            <i class="fa-solid fa-plus me-1"></i>Add Lesson
+                        </a>
+                        <form asp-action="DeleteSection" asp-route-id="@courseSection.Id" asp-route-courseId="@Model.Id" method="post"
+                              onsubmit="return confirm('WARNING: Deleting this section will delete ALL lessons inside it. Continue?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Section">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (!courseSection.Lessons.Any())
+                        {
+                            <li class="list-group-item text-center py-4 text-muted small bg-light">
+                                <i class="fa-solid fa-layer-group d-block fa-2x mb-2 text-secondary"></i>
+                                No lessons in this section.
+                            </li>
+                        }
+                        
+                        @foreach (var lesson in courseSection.Lessons.OrderBy(l => l.OrderIndex))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="badge rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width:28px; height:28px; background: rgba(164,53,240,0.1); color: var(--primary); font-size:0.8rem;">
+                                        @lesson.OrderIndex
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">@lesson.Title</h6>
+                                        <div class="d-flex gap-2 text-muted" style="font-size:0.75rem;">
+                                            @if (!string.IsNullOrEmpty(lesson.VideoUrl))
+                                            {
+                                                <span><i class="fa-solid fa-video me-1 text-primary"></i>Video</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(lesson.DocumentUrl))
+                                            {
+                                                <span><i class="fa-solid fa-file-pdf me-1 text-danger"></i>Doc</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(lesson.Content))
+                                            {
+                                                <span><i class="fa-solid fa-file-lines me-1 text-success"></i>Text</span>
+                                            }
+                                            <span><i class="fa-regular fa-clock me-1"></i>@lesson.Duration min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="ManageQuiz" asp-route-lessonId="@lesson.Id" 
+                                       class="btn btn-sm btn-outline-secondary" title="Quiz Builder">
+                                        <i class="fa-solid fa-circle-question"></i>
+                                    </a>
+                                    <form asp-action="DeleteLesson" asp-route-id="@lesson.Id" asp-route-courseId="@Model.Id" method="post"
+                                          onsubmit="return confirm('Delete this lesson and its content?');">
+                                        <button type="submit" class="btn btn-sm text-danger border-0 bg-transparent" title="Delete Lesson">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right: Add Section Form -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 2rem;">
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase fw-bold small mb-3">
+                    <i class="fa-solid fa-folder-plus me-2 text-primary"></i>New Section
+                </h6>
+                <form asp-action="AddSection" method="post">
+                    <input type="hidden" name="courseId" value="@Model.Id" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Section Title</label>
+                        <input type="text" name="title" class="form-control" required placeholder="e.g. Introduction" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Order Number</label>
+                        <input type="number" name="order" class="form-control" required value="@(Model.Sections.Count + 1)" min="1" />
+                    </div>
+                    
+                    <button type="submit" class="btn-primary-custom w-100">
+                        <i class="fa-solid fa-check me-2"></i>Create Section
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

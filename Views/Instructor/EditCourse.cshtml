@@ -1,0 +1,169 @@
+@model ELearningPlatform.Models.ViewModels.CourseEditViewModel
+@{
+    ViewData["Title"] = "Edit Course";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">Edit Details</h1>
+            <p class="text-muted mb-0">Update information for <span class="text-primary fw-semibold">@Model.Title</span></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <a asp-action="ManageLessons" asp-route-courseId="@Model.Id" class="btn-outline-primary btn">
+                <i class="fa-solid fa-layer-group me-1"></i> Curriculum Builder
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="EditCourse" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingImageUrl" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+    <div class="row g-4">
+        <!-- Left: Course Details -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-4">
+                        <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Course Information
+                    </h6>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold"></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label fw-semibold"></label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Price" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text fw-bold">$</span>
+                                <input asp-for="Price" type="number" step="0.01" min="0" class="form-control" />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Level" class="form-label fw-semibold"></label>
+                            <select asp-for="Level" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                                <option value="All Levels">All Levels</option>
+                            </select>
+                            <span asp-validation-for="Level" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Language" class="form-label fw-semibold"></label>
+                            <input asp-for="Language" class="form-control" />
+                            <span asp-validation-for="Language" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Duration" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="Duration" type="number" class="form-control" />
+                                <span class="input-group-text">mins</span>
+                            </div>
+                            <span asp-validation-for="Duration" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" role="switch" asp-for="IsPublished">
+                                <label class="form-check-label fs-6 fw-semibold mt-1 ms-2" asp-for="IsPublished">Course is Publicly Visible (Published)</label>
+                            </div>
+                            <div class="form-text mt-1">Uncheck to mark as Draft. Draft courses cannot be purchased or viewed by students.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Thumbnail -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-4">
+                        <i class="fa-solid fa-image me-2 text-primary"></i>Course Thumbnail
+                    </h6>
+
+                    <!-- Image preview -->
+                    <div id="img-preview-wrapper" class="mb-3 rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center"
+                         style="height: 160px; border: 2px dashed #D1D7DC; cursor: pointer;" onclick="document.getElementById('img-input').click();">
+                        
+                        @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+                        {
+                            <img id="img-preview" src="@Model.ExistingImageUrl" alt="Preview" style="width:100%;height:160px;object-fit:cover;">
+                        }
+                        else
+                        {
+                            <div id="img-placeholder" class="text-center text-muted">
+                                <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 d-block"></i>
+                                <span class="small fw-semibold">Click to upload image</span>
+                            </div>
+                            <img id="img-preview" src="#" alt="Preview" class="d-none" style="width:100%;height:160px;object-fit:cover;">
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <input asp-for="ImageFile" type="file" class="form-control d-none" id="img-input"
+                               accept="image/*" onchange="previewImage(this)" />
+                        <label for="img-input" class="btn btn-outline-secondary w-100">
+                            <i class="fa-solid fa-folder-open me-2"></i>Change Image
+                        </label>
+                        <div class="form-text text-center mt-1">Leave blank to keep existing image. JPG, PNG, WebP.</div>
+                        <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <a asp-action="Dashboard" class="btn btn-outline-secondary px-4">Cancel</a>
+        <button type="submit" class="btn-primary-custom px-5">
+            <i class="fa-solid fa-save me-2"></i>Save Changes
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('img-preview');
+                    const placeholder = document.getElementById('img-placeholder');
+                    
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    if(placeholder) placeholder.classList.add('d-none');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

@@ -1,0 +1,147 @@
+@model ELearningPlatform.Models.Course
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["FullWidth"] = true;
+}
+
+<!-- Course Hero Banner -->
+<div style="background: linear-gradient(135deg, #1C1D1F 0%, #3d1a70 100%); padding: 3.5rem 0;">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="badge mb-3 px-3 py-2" style="background: rgba(164,53,240,0.3); color: #c084fc; font-size: 0.85rem;">
+                    @Model.Category?.Name
+                </span>
+                <h1 class="text-white fw-bold mb-3" style="font-size: clamp(1.5rem, 4vw, 2.2rem);">@Model.Title</h1>
+                <p class="mb-4" style="color: rgba(255,255,255,0.8); font-size: 1.05rem; line-height: 1.7;">@Model.Description</p>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    @if (!string.IsNullOrEmpty(Model.Instructor?.FirstName))
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:36px; height:36px; background: var(--primary); color: #fff; font-weight: 700; font-size: 0.9rem;">
+                                @Model.Instructor.FirstName[0]
+                            </div>
+                            <span style="color: rgba(255,255,255,0.8);">@Model.Instructor.FirstName @Model.Instructor.LastName</span>
+                        </div>
+                    }
+                    <span style="color: rgba(255,255,255,0.5);">•</span>
+                    <span style="color: #f59e0b; font-weight: 700;">
+                        <i class="fa-solid fa-star me-1"></i>4.8
+                        <span style="color: rgba(255,255,255,0.5); font-weight: 400;">(12,453 ratings)</span>
+                    </span>
+                    <span style="color: rgba(255,255,255,0.5);">•</span>
+                    <span style="color: rgba(255,255,255,0.7);">
+                        <i class="fa-solid fa-users me-1"></i>@Model.Lessons.Count Lessons
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <!-- Enrollment Card -->
+                <div class="card shadow-lg border-0" style="border-radius: 10px; overflow: hidden;">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Title" style="height: 180px; object-fit: cover;">
+                    }
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-baseline gap-2 mb-3">
+                            @if (Model.Price == 0)
+                            {
+                                <h2 class="fw-bold mb-0" style="color: #059669; font-size: 2rem;">FREE</h2>
+                            }
+                            else
+                            {
+                                <h2 class="fw-bold mb-0" style="color: var(--text-main); font-size: 2rem;">$@Model.Price</h2>
+                            }
+                        </div>
+                        @if (ViewBag.IsEnrolled)
+                        {
+                            <a asp-controller="Student" asp-action="MyCourse" asp-route-id="@Model.Id"
+                               class="btn-primary-custom w-100 text-center d-block py-3 fs-6 mb-3">
+                                <i class="fa-solid fa-play me-2"></i>Go to Course
+                            </a>
+                        }
+                        else
+                        {
+                            <form asp-action="Enroll" asp-route-id="@Model.Id" method="post">
+                                <button type="submit" class="btn-primary-custom w-100 text-center d-block py-3 fs-6 mb-3">
+                                    <i class="fa-solid fa-bolt me-2"></i>Enroll Now
+                                </button>
+                            </form>
+                        }
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-1"><i class="fa-solid fa-infinity me-2"></i>Full lifetime access</li>
+                            <li class="mb-1"><i class="fa-solid fa-certificate me-2"></i>Certificate of completion</li>
+                            <li><i class="fa-solid fa-mobile-screen me-2"></i>Access on any device</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Curriculum -->
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Course Content</h2>
+    <div class="mb-3 text-muted small">
+        <i class="fa-solid fa-list me-2"></i><strong>@Model.Lessons.Count</strong> lessons
+    </div>
+
+    <div class="accordion shadow-sm mb-5" id="curriculumAccordion">
+        @foreach (var lesson in Model.Lessons)
+        {
+            <div class="accordion-item border-bottom">
+                <h2 class="accordion-header" id="heading-@lesson.Id">
+                    <button class="accordion-button collapsed py-3" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse-@lesson.Id"
+                            aria-expanded="false"
+                            aria-controls="collapse-@lesson.Id"
+                            style="font-weight: 600;">
+                        <i class="fa-solid fa-circle-play me-3 text-primary"></i>
+                        <strong class="me-2">@lesson.OrderIndex.</strong> @lesson.Title
+                    </button>
+                </h2>
+                <div id="collapse-@lesson.Id"
+                     class="accordion-collapse collapse"
+                     aria-labelledby="heading-@lesson.Id"
+                     data-bs-parent="#curriculumAccordion">
+                    <div class="accordion-body bg-light">
+                        <p class="mb-3 text-muted">@lesson.Description</p>
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            @if (!string.IsNullOrEmpty(lesson.VideoUrl))
+                            {
+                                <span class="badge" style="background: rgba(14,165,233,0.1); color: #0ea5e9;">
+                                    <i class="fa-solid fa-video me-1"></i>Video Lecture
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(lesson.DocumentUrl))
+                            {
+                                <span class="badge" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+                                    <i class="fa-solid fa-file-pdf me-1"></i>Document
+                                </span>
+                            }
+                            @if (ViewBag.IsEnrolled)
+                            {
+                                <a asp-controller="Student" asp-action="PlayLesson" asp-route-lessonId="@lesson.Id"
+                                   class="btn btn-sm btn-primary ms-auto">
+                                    <i class="fa-solid fa-play me-1"></i> Watch Now
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Lessons.Any())
+        {
+            <div class="accordion-item">
+                <div class="accordion-body text-center text-muted py-4">
+                    <i class="fa-solid fa-hourglass-half fa-2x mb-2 d-block"></i>
+                    Curriculum not published yet. Check back soon!
+                </div>
+            </div>
+        }
+    </div>
+</div>

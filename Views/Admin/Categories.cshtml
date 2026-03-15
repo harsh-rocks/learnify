@@ -1,0 +1,66 @@
+@model IEnumerable<ELearningPlatform.Models.Category>
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1">Categories</h1>
+            <p class="text-muted mb-0">Manage course categories for organization</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <a asp-action="CreateCategory" class="btn-primary-custom">
+                <i class="fa-solid fa-plus me-1"></i> Add Category
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background: #f7f9fa;">
+                    <tr>
+                        <th class="ps-4 py-3 fw-semibold text-muted small text-uppercase">Category Name</th>
+                        <th class="py-3 fw-semibold text-muted small text-uppercase">Description</th>
+                        <th class="py-3 text-end pe-4 fw-semibold text-muted small text-uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 py-3 fw-bold">@item.Name</td>
+                            <td class="py-3 text-muted small">@item.Description</td>
+                            <td class="py-3 text-end pe-4">
+                                <a asp-action="EditCategory" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fa-solid fa-edit"></i>
+                                </a>
+                                <form asp-action="DeleteCategory" asp-route-id="@item.Id" class="d-inline" 
+                                      onsubmit="return confirm('Delete this category? This might affect courses using it.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-2x d-block mb-2"></i>
+                                No categories found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
