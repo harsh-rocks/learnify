@@ -48,6 +48,21 @@
         .auth-form-inner .form-control:focus {
             border-color: #A435F0; box-shadow: 0 0 0 3px rgba(164,53,240,0.12);
         }
+        /* Firebase status badge */
+        #firebase-status {
+            display: none;
+            align-items: center; gap: 0.5rem;
+            font-size: 0.82rem; font-weight: 600;
+            padding: 0.4rem 0.9rem; border-radius: 20px;
+            margin-bottom: 1rem;
+        }
+        #firebase-status.verifying { display: flex; background: #ede9fe; color: #7c3aed; }
+        #firebase-status.success   { display: flex; background: #d1fae5; color: #065f46; }
+        #firebase-status.error     { display: flex; background: #fee2e2; color: #991b1b; }
+
+        .btn-submit-loader { display: none; }
+        .btn-loading .btn-submit-text { display: none; }
+        .btn-loading .btn-submit-loader { display: inline-block; }
     </style>
 </head>
 <body>
@@ -65,12 +80,23 @@
                 <div><div class="brand-stat-num">5M+</div><div class="brand-stat-lbl">Learners</div></div>
                 <div><div class="brand-stat-num">500+</div><div class="brand-stat-lbl">Instructors</div></div>
             </div>
+            <!-- Firebase badge -->
+            <div class="mt-4 d-flex align-items-center gap-2" style="opacity:0.8; font-size:0.82rem;">
+                <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.88 23.4L9.14 4.64l6.62 12.06L5.88 23.4z" fill="#FFA000"/>
+                    <path d="M15.76 16.7L9.14 4.64 26.12 23.4 15.76 16.7z" fill="#F57F17"/>
+                    <path d="M5.88 23.4l3.26-5.7 2.62 1.48-5.88 4.22z" fill="#FFCA28"/>
+                    <path d="M26.12 23.4L15.76 16.7l2.62 10.3-2.14-3.6L26.12 23.4z" fill="#FFA000"/>
+                    <path d="M18.38 27l-2.62-10.3 10.36 6.7L18.38 27z" fill="#F57F17"/>
+                </svg>
+                <span class="text-white">Secured by Firebase Authentication</span>
+            </div>
         </div>
     </div>
 
     <!-- Right Form Panel -->
     <div class="auth-form-panel col-12 col-md-7">
-        <div class="auth-form-inner">
+        <div class="auth-form-inner fade-in-up">
             <div class="mb-4">
                 <a href="/" class="d-md-none text-decoration-none text-primary fw-bold mb-3 d-block">
                     <i class="fa-solid fa-graduation-cap me-1"></i> Learnify
@@ -79,18 +105,30 @@
                 <p class="text-muted">Don't have an account? <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" class="text-primary fw-semibold">Sign up</a></p>
             </div>
 
-            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+            <!-- Firebase status indicator -->
+            <div id="firebase-status">
+                <i class="fa-solid fa-circle-notch fa-spin" id="fb-icon"></i>
+                <span id="fb-status-text">Verifying with Firebase...</span>
+            </div>
+
+            <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" id="server-errors"></div>
+                <div id="firebase-error" class="alert alert-danger py-2 small d-none"></div>
 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label fw-semibold"></label>
-                    <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                    <input asp-for="Email" class="form-control" placeholder="you@example.com" id="login-email" />
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label fw-semibold"></label>
-                    <input asp-for="Password" class="form-control" placeholder="Your password" type="password" />
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" placeholder="Your password" id="login-password" type="password" />
+                        <button class="btn btn-outline-secondary" type="button" id="toggle-pw" tabindex="-1">
+                            <i class="fa-regular fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
 
@@ -99,27 +137,101 @@
                     <label asp-for="RememberMe" class="form-check-label text-muted"></label>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="background-color: #A435F0; border-color: #A435F0;">
-                    Log in <i class="fa-solid fa-arrow-right ms-2"></i>
+                <button type="submit" id="login-btn" class="btn btn-primary w-100 py-2 fw-bold" style="background-color: #A435F0; border-color: #A435F0;">
+                    <span class="btn-submit-text">Log in <i class="fa-solid fa-arrow-right ms-2"></i></span>
+                    <span class="btn-submit-loader"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Signing in...</span>
                 </button>
 
-                <div class="mt-4 p-3 rounded-3" style="background: #fdf2ff; border: 1px dashed #A435F0;">
-                    <h6 class="fw-bold mb-2" style="color: #6b21a8;"><i class="fa-solid fa-key me-2"></i>Demo Accounts</h6>
-                    <ul class="list-unstyled small mb-0 text-muted">
-                        <li class="mb-1"><strong>Admin:</strong> admin@elearning.com / Admin123!</li>
-                        <li><strong>Instructor:</strong> instructor@elearning.com / Instructor123!</li>
-                    </ul>
-                    <p class="x-small mt-2 mb-0 text-muted" style="font-size: 0.75rem;">Copy and paste for easy access.</p>
+                <div class="mt-4 p-3 rounded-3" style="background: #fff8f1; border: 1px dashed #f59e0b;">
+                    <h6 class="fw-bold mb-2" style="color: #b45309;"><i class="fa-solid fa-triangle-exclamation me-2"></i>Firebase Notice</h6>
+                    <p class="small text-muted mb-0">Seeded accounts (like Admin) will only work if added to the user's Firebase project. <strong>New registrations</strong> via the Sign Up page will work perfectly.</p>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+<!-- Firebase SDK (modular v10) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
+    const firebaseConfig = {
+        apiKey: "AIzaSyCCtMbn3Kajbe1XkuiBJuWVQIcFKJ05eIE",
+        authDomain: "elearning-platform-51e86.firebaseapp.com",
+        projectId: "elearning-platform-51e86",
+        storageBucket: "elearning-platform-51e86.firebasestorage.app",
+        messagingSenderId: "995964379955",
+        appId: "1:995964379955:web:da1fed1e0161cec0761446",
+        measurementId: "G-DBCW1K68XR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form      = document.getElementById('login-form');
+    const statusEl  = document.getElementById('firebase-status');
+    const fbIcon    = document.getElementById('fb-icon');
+    const fbText    = document.getElementById('fb-status-text');
+    const fbError   = document.getElementById('firebase-error');
+    const loginBtn  = document.getElementById('login-btn');
+
+    // Password toggle
+    document.getElementById('toggle-pw').addEventListener('click', () => {
+        const pw  = document.getElementById('login-password');
+        const eye = document.getElementById('eye-icon');
+        if (pw.type === 'password') { pw.type = 'text'; eye.classList.replace('fa-eye', 'fa-eye-slash'); }
+        else                        { pw.type = 'password'; eye.classList.replace('fa-eye-slash', 'fa-eye'); }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email    = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        // Show loading state
+        loginBtn.classList.add('btn-loading');
+        loginBtn.disabled = true;
+        fbError.classList.add('d-none');
+
+        // Step 1: Firebase Authentication
+        setStatus('verifying', 'fa-circle-notch fa-spin', 'Verifying with Firebase...');
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            setStatus('success', 'fa-circle-check', 'Firebase verified! Signing in...');
+            // Step 2: Submit to ASP.NET Identity (which manages the session cookie)
+            setTimeout(() => form.submit(), 500);
+        } catch (err) {
+            loginBtn.classList.remove('btn-loading');
+            loginBtn.disabled = false;
+            statusEl.className = 'firebase-status';
+            statusEl.style.display = 'none';
+            fbError.classList.remove('d-none');
+            fbError.textContent = getFirebaseError(err.code);
+        }
+    });
+
+    function setStatus(type, iconClasses, text) {
+        statusEl.className = type;
+        fbIcon.className = `fa-solid ${iconClasses}`;
+        fbText.textContent = text;
+        statusEl.style.display = 'flex';
+    }
+
+    function getFirebaseError(code) {
+        const messages = {
+            'auth/user-not-found':        '❌ No account found with this email. Please register first.',
+            'auth/wrong-password':        '❌ Incorrect password. Please try again.',
+            'auth/invalid-credential':    '❌ Invalid email or password. Please try again.',
+            'auth/invalid-email':         '❌ Please list a valid email address.',
+            'auth/too-many-requests':     '⚠️ Too many login attempts. Please wait and try again.',
+            'auth/user-disabled':         '⚠️ This account has been disabled. Contact support.',
+            'auth/network-request-failed':'⚠️ Network error. Check your internet connection.',
+        };
+        return messages[code] || `❌ Login failed (${code}). Please try again.`;
+    }
+</script>
 </body>
 </html>
