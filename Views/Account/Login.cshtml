@@ -142,16 +142,21 @@
                     <span class="btn-submit-loader"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Signing in...</span>
                 </button>
 
-                <div class="mt-4 p-3 rounded-3" style="background: #fff8f1; border: 1px dashed #f59e0b;">
-                    <h6 class="fw-bold mb-2" style="color: #b45309;"><i class="fa-solid fa-triangle-exclamation me-2"></i>Firebase Notice</h6>
-                    <p class="small text-muted mb-0">Seeded accounts (like Admin) will only work if added to the user's Firebase project. <strong>New registrations</strong> via the Sign Up page will work perfectly.</p>
+                <!-- Demo helper -->
+                <div class="mt-4 p-3 rounded-3" style="background: #fdf2ff; border: 1px dashed #A435F0;">
+                    <h6 class="fw-bold mb-2" style="color: #6b21a8;"><i class="fa-solid fa-key me-2"></i>Demo Accounts</h6>
+                    <ul class="list-unstyled small mb-0 text-muted">
+                        <li class="mb-1"><strong>Admin:</strong> admin@elearning.com / Admin123!</li>
+                        <li><strong>Instructor:</strong> instructor@elearning.com / Instructor123!</li>
+                    </ul>
+                    <p class="x-small mt-2 mb-0 text-muted" style="font-size: 0.75rem;">Copy and paste for immediate access.</p>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Firebase SDK (modular v10) -->
+<!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -190,41 +195,30 @@
         const email    = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
-        console.log("Login attempt for:", email);
-
-        // Show loading state
         loginBtn.classList.add('btn-loading');
         loginBtn.disabled = true;
         fbError.classList.add('d-none');
 
-        // CHECK: If it's a seeded account, skip Firebase and submit directly to server.
+        // HYBRID AUTH: Seeded accounts bypass Firebase validation
         const seededEmails = ['admin@elearning.com', 'instructor@elearning.com'];
         const isSeeded = seededEmails.some(se => se.toLowerCase() === email.toLowerCase());
-        
-        console.log("Is seeded account:", isSeeded);
 
         if (isSeeded) {
             setStatus('success', 'fa-circle-check', 'Local account detected. Signing in...');
-            console.log("Bypassing Firebase for seeded account.");
             setTimeout(() => form.submit(), 500);
             return;
         }
 
-        // Step 1: Firebase Authentication (for all other users)
+        // Standard Firebase flow
         setStatus('verifying', 'fa-circle-notch fa-spin', 'Verifying with Firebase...');
-        console.log("Proceeding with Firebase verification.");
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setStatus('success', 'fa-circle-check', 'Firebase verified! Signing in...');
-            console.log("Firebase verification successful.");
-            // Step 2: Submit to ASP.NET Identity (which manages the session cookie)
             setTimeout(() => form.submit(), 500);
         } catch (err) {
-            console.error("Firebase error:", err.code, err.message);
             loginBtn.classList.remove('btn-loading');
             loginBtn.disabled = false;
-            statusEl.className = 'firebase-status';
             statusEl.style.display = 'none';
             fbError.classList.remove('d-none');
             fbError.textContent = getFirebaseError(err.code);
@@ -243,12 +237,10 @@
             'auth/user-not-found':        '❌ No account found with this email. Please register first.',
             'auth/wrong-password':        '❌ Incorrect password. Please try again.',
             'auth/invalid-credential':    '❌ Invalid email or password. Please try again.',
-            'auth/invalid-email':         '❌ Please list a valid email address.',
-            'auth/too-many-requests':     '⚠️ Too many login attempts. Please wait and try again.',
-            'auth/user-disabled':         '⚠️ This account has been disabled. Contact support.',
-            'auth/network-request-failed':'⚠️ Network error. Check your internet connection.',
+            'auth/invalid-email':         '❌ Please enter a valid email address.',
+            'auth/too-many-requests':     '⚠️ Too many attempts. Please try again later.',
         };
-        return messages[code] || `❌ Login failed (${code}). Please try again.`;
+        return messages[code] || `❌ Login failed (${code}).`;
     }
 </script>
 </body>
