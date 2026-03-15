@@ -89,15 +89,15 @@ builder.Services.AddScoped<ELearningPlatform.Services.IFileStorageService, ELear
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseDeveloperExceptionPage();
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 else
 {
-    // app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
