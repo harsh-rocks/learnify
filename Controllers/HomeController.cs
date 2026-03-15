@@ -28,5 +28,11 @@ namespace ELearningPlatform.Controllers
         {
             return RedirectToAction("Index", "Course");
         }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new Models.ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }
