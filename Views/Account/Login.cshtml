@@ -156,7 +156,7 @@
     </div>
 </div>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK (modular v10) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -195,33 +195,33 @@
         const email    = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
+        // Show loading state
         loginBtn.classList.add('btn-loading');
         loginBtn.disabled = true;
         fbError.classList.add('d-none');
 
-        // HYBRID AUTH: Seeded accounts bypass Firebase validation
-        const seededEmails = ['admin@elearning.com', 'instructor@elearning.com'];
-        const isSeeded = seededEmails.some(se => se.toLowerCase() === email.toLowerCase());
-
-        if (isSeeded) {
-            setStatus('success', 'fa-circle-check', 'Local account detected. Signing in...');
-            setTimeout(() => form.submit(), 500);
-            return;
-        }
-
-        // Standard Firebase flow
+        // Step 1: Firebase Authentication
         setStatus('verifying', 'fa-circle-notch fa-spin', 'Verifying with Firebase...');
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setStatus('success', 'fa-circle-check', 'Firebase verified! Signing in...');
+            // Step 2: Submit to ASP.NET Identity (which manages the session cookie)
             setTimeout(() => form.submit(), 500);
         } catch (err) {
-            loginBtn.classList.remove('btn-loading');
-            loginBtn.disabled = false;
-            statusEl.style.display = 'none';
-            fbError.classList.remove('d-none');
-            fbError.textContent = getFirebaseError(err.code);
+            // ROBUST HYBRID LOGIC: 
+            // If the user isn't found in Firebase, they might be a local seeded account.
+            // We proceed to submit to the server anyway to check the local database.
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                setStatus('success', 'fa-circle-check', 'Checking local database... Signing in...');
+                setTimeout(() => form.submit(), 500);
+            } else {
+                loginBtn.classList.remove('btn-loading');
+                loginBtn.disabled = false;
+                statusEl.style.display = 'none';
+                fbError.classList.remove('d-none');
+                fbError.textContent = getFirebaseError(err.code);
+            }
         }
     });
 
@@ -234,13 +234,12 @@
 
     function getFirebaseError(code) {
         const messages = {
-            'auth/user-not-found':        '❌ No account found with this email. Please register first.',
-            'auth/wrong-password':        '❌ Incorrect password. Please try again.',
-            'auth/invalid-credential':    '❌ Invalid email or password. Please try again.',
             'auth/invalid-email':         '❌ Please enter a valid email address.',
-            'auth/too-many-requests':     '⚠️ Too many attempts. Please try again later.',
+            'auth/too-many-requests':     '⚠️ Too many login attempts. Please wait and try again.',
+            'auth/user-disabled':         '⚠️ This account has been disabled. Contact support.',
+            'auth/network-request-failed':'⚠️ Network error. Check your internet connection.',
         };
-        return messages[code] || `❌ Login failed (${code}).`;
+        return messages[code] || `❌ Login failed (${code}). Please try again.`;
     }
 </script>
 </body>
