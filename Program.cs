@@ -124,6 +124,10 @@ using (var scope = app.Services.CreateScope())
 
         // Ensure all courses are free (price = 0)
         var db = services.GetRequiredService<ApplicationDbContext>();
+        
+        // Apply pending migrations and create database if it doesn't exist
+        await db.Database.MigrateAsync();
+
         var paidCourses = db.Courses.Where(c => c.Price != 0).ToList();
         if (paidCourses.Any())
         {
