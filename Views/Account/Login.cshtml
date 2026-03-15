@@ -190,6 +190,8 @@
         const email    = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
+        console.log("Login attempt for:", email);
+
         // Show loading state
         loginBtn.classList.add('btn-loading');
         loginBtn.disabled = true;
@@ -197,21 +199,29 @@
 
         // CHECK: If it's a seeded account, skip Firebase and submit directly to server.
         const seededEmails = ['admin@elearning.com', 'instructor@elearning.com'];
-        if (seededEmails.includes(email.toLowerCase())) {
+        const isSeeded = seededEmails.some(se => se.toLowerCase() === email.toLowerCase());
+        
+        console.log("Is seeded account:", isSeeded);
+
+        if (isSeeded) {
             setStatus('success', 'fa-circle-check', 'Local account detected. Signing in...');
+            console.log("Bypassing Firebase for seeded account.");
             setTimeout(() => form.submit(), 500);
             return;
         }
 
         // Step 1: Firebase Authentication (for all other users)
         setStatus('verifying', 'fa-circle-notch fa-spin', 'Verifying with Firebase...');
+        console.log("Proceeding with Firebase verification.");
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setStatus('success', 'fa-circle-check', 'Firebase verified! Signing in...');
+            console.log("Firebase verification successful.");
             // Step 2: Submit to ASP.NET Identity (which manages the session cookie)
             setTimeout(() => form.submit(), 500);
         } catch (err) {
+            console.error("Firebase error:", err.code, err.message);
             loginBtn.classList.remove('btn-loading');
             loginBtn.disabled = false;
             statusEl.className = 'firebase-status';
