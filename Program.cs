@@ -120,13 +120,12 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        await DbSeeder.SeedRolesAndAdminAsync(services);
-
-        // Ensure all courses are free (price = 0)
         var db = services.GetRequiredService<ApplicationDbContext>();
         
         // Apply pending migrations and create database if it doesn't exist
         await db.Database.MigrateAsync();
+
+        await DbSeeder.SeedRolesAndAdminAsync(services);
 
         var paidCourses = db.Courses.Where(c => c.Price != 0).ToList();
         if (paidCourses.Any())
