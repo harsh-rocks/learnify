@@ -88,7 +88,7 @@ namespace ELearningPlatform.Controllers
             {
                 var email = model.Email.Trim();
 
-                // If Firebase has already verified the user on the client, ensure they exist locally
+                // 1. Handle Firebase-approved users (Auto-sync with local DB)
                 if (firebaseApproved)
                 {
                     var user = await _userManager.FindByEmailAsync(email);
@@ -103,7 +103,16 @@ namespace ELearningPlatform.Controllers
                             LastName = "User",
                             EmailConfirmed = true
                         };
+                        
+                        // We use the provided password. If it fails, we fall back to a random one 
+                        // as they are already authenticated via Firebase.
                         var createResult = await _userManager.CreateAsync(user, model.Password);
+                        if (!createResult.Succeeded)
+                        {
+                            // If creation failed (likely password complexity), try with a random secure password
+                            createResult = await _userManager.CreateAsync(user, Guid.NewGuid().ToString() + "A1!");
+                        }
+
                         if (createResult.Succeeded)
                         {
                             await _userManager.AddToRoleAsync(user, "Student");
@@ -117,16 +126,32 @@ namespace ELearningPlatform.Controllers
                     }
                 }
 
-                // Standard login check (covers local-only seeded accounts and synced Firebase users)
+                // 2. Standard login check (for seeded accounts and synced users)
+                var userFound = await _userManager.FindByEmailAsync(email);
+                if (userFound == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Account not found. Please register first.");
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                
                 if (result.Succeeded)
                 {
                     return RedirectToLocal(returnUrl);
                 }
+                
+                if (result.IsLockedOut)
+                {
+                    ModelState.AddModelError(string.Empty, "Account locked out. Please try again later.");
+                }
+                else if (result.IsNotAllowed)
+                {
+                    ModelState.AddModelError(string.Empty, "Login not allowed. Please confirm your email.");
+                }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
+                    ModelState.AddModelError(string.Empty, "Invalid password. Please try again.");
                 }
             }
             return View(model);
